@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users - SmartPark SIMS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>SmartPark SIMS</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="spare_parts.html"><i class="fas fa-cogs"></i> Spare Parts</a></li>
+                    <li><a href="stock_in.html"><i class="fas fa-arrow-down"></i> Stock In</a></li>
+                    <li><a href="stock_out.html"><i class="fas fa-arrow-up"></i> Stock Out</a></li>
+                    <li><a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="users.html" class="active"><i class="fas fa-users"></i> Users</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Add User Form -->
+            <div class="form-container">
+                <h2><i class="fas fa-user-plus"></i> Add New User</h2>
+                <form id="userForm">
+                    <div class="form-group">
+                        <label for="fullName"><i class="fas fa-user"></i> Full Name *</label>
+                        <input type="text" id="fullName" class="form-control" required placeholder="Enter full name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="username"><i class="fas fa-user-tag"></i> Username *</label>
+                        <input type="text" id="username" class="form-control" required placeholder="Enter username">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> Password *</label>
+                        <input type="password" id="password" class="form-control" required placeholder="Enter password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword"><i class="fas fa-lock"></i> Confirm Password *</label>
+                        <input type="password" id="confirmPassword" class="form-control" required placeholder="Confirm password">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="role"><i class="fas fa-user-shield"></i> Role *</label>
+                        <select id="role" class="form-control" required>
+                            <option value="">Select Role</option>
+                            <option value="admin">Administrator</option>
+                            <option value="manager">Stock Manager</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email (Optional)</label>
+                        <input type="email" id="email" class="form-control" placeholder="Enter email address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone"><i class="fas fa-phone"></i> Phone (Optional)</label>
+                        <input type="tel" id="phone" class="form-control" placeholder="Enter phone number">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                    <button type="reset" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Clear Form
+                    </button>
+                </form>
+            </div>
+
+            <!-- Users List -->
+            <div class="table-container">
+                <h2><i class="fas fa-users"></i> User Management</h2>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <input type="text" id="searchUsers" class="form-control" placeholder="Search users...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="roleFilter" class="form-control">
+                            <option value="">All Roles</option>
+                            <option value="admin">Administrator</option>
+                            <option value="manager">Stock Manager</option>
+                            <option value="staff">Staff</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Full Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Created Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 SmartPark Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Form validation
+        document.getElementById('userForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            addUser();
+        });
+
+        // Search functionality
+        document.getElementById('searchUsers').addEventListener('input', filterUsers);
+        document.getElementById('roleFilter').addEventListener('change', filterUsers);
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUsers();
+        });
+
+        function addUser() {
+            const userData = {
+                fullName: document.getElementById('fullName').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                role: document.getElementById('role').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                createdDate: new Date().toISOString().split('T')[0],
+                status: 'active'
+            };
+
+            // Check if username already exists
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            const existingUser = users.find(user => user.username === userData.username);
+            
+            if (existingUser) {
+                alert('Username already exists!');
+                return;
+            }
+
+            // Add user
+            userData.id = Date.now();
+            users.push(userData);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            // Reset form
+            document.getElementById('userForm').reset();
+            
+            // Reload table
+            loadUsers();
+            
+            alert('User added successfully!');
+        }
+
+        function loadUsers() {
+            // Load default admin user if none exist
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.length === 0) {
+                // Create default admin user
+                const defaultAdmin = {
+                    id: 1,
+                    fullName: 'System Administrator',
+                    username: 'admin',
+                    password: 'admin123',
+                    role: 'admin',
+                    email: 'admin@smartpark.rw',
+                    phone: '+250780000000',
+                    createdDate: new Date().toISOString().split('T')[0],
+                    status: 'active'
+                };
+                users.push(defaultAdmin);
+                localStorage.setItem('users', JSON.stringify(users));
+            }
+            
+            const tbody = document.getElementById('usersBody');
+            tbody.innerHTML = '';
+            
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                const roleDisplay = getRoleDisplay(user.role);
+                const statusClass = user.status === 'active' ? 'status-in-stock' : 'status-out';
+                
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.fullName}</td>
+                    <td>${user.username}</td>
+                    <td><span class="role-badge role-${user.role}">${roleDisplay}</span></td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td><span class="status ${statusClass}">${user.status}</span></td>
+                    <td>${user.createdDate}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editUser(${user.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="toggleUserStatus(${user.id})">
+                            <i class="fas fa-toggle-on"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function getRoleDisplay(role) {
+            const roles = {
+                'admin': 'Administrator',
+                'manager': 'Stock Manager',
+                'staff': 'Staff'
+            };
+            return roles[role] || role;
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('searchUsers').value.toLowerCase();
+            const roleFilter = document.getElementById('roleFilter').value;
+            const rows = document.querySelectorAll('#usersBody tr');
+            
+            rows.forEach(row => {
+                const fullName = row.cells[1].textContent.toLowerCase();
+                const username = row.cells[2].textContent.toLowerCase();
+                const role = row.cells[3].textContent.toLowerCase();
+                
+                const matchesSearch = fullName.includes(searchTerm) || username.includes(searchTerm);
+                const matchesRole = !roleFilter || role.includes(roleFilter);
+                
+                row.style.display = matchesSearch && matchesRole ? '' : 'none';
+            });
+        }
+
+        function editUser(id) {
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.id === id);
+            
+            if (user) {
+                document.getElementById('fullName').value = user.fullName;
+                document.getElementById('username').value = user.username;
+                document.getElementById('username').readOnly = true; // Prevent username change
+                document.getElementById('role').value = user.role;
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('phone').value = user.phone || '';
+                
+                // Remove the old record
+                const index = users.findIndex(u => u.id === id);
+                if (index > -1) {
+                    users.splice(index, 1);
+                    localStorage.setItem('users', JSON.stringify(users));
+                    loadUsers();
+                }
+            }
+        }
+
+        function deleteUser(id) {
+            if (id === 1) {
+                alert('Cannot delete the default admin user!');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this user?')) {
+                let users = JSON.parse(localStorage.getItem('users') || '[]');
+                users = users.filter(user => user.id !== id);
+                localStorage.setItem('users', JSON.stringify(users));
+                loadUsers();
+                alert('User deleted successfully!');
+            }
+        }
+
+        function toggleUserStatus(id) {
+            let users = JSON.parse(localStorage.getItem('users') || '[]');
+            const userIndex = users.findIndex(user => user.id === id);
+            
+            if (userIndex > -1) {
+                users[userIndex].status = users[userIndex].status === 'active' ? 'inactive' : 'active';
+                localStorage.setItem('users', JSON.stringify(users));
+                loadUsers();
+                alert(`User status changed to ${users[userIndex].status}!`);
+            }
+        }
+    </script>
+</body>
+</html>

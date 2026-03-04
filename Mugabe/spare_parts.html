@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spare Parts - SmartPark SIMS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>SmartPark SIMS</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="spare_parts.html" class="active"><i class="fas fa-cogs"></i> Spare Parts</a></li>
+                    <li><a href="stock_in.html"><i class="fas fa-arrow-down"></i> Stock In</a></li>
+                    <li><a href="stock_out.html"><i class="fas fa-arrow-up"></i> Stock Out</a></li>
+                    <li><a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Add Spare Part Form -->
+            <div class="form-container">
+                <h2><i class="fas fa-plus-circle"></i> Add New Spare Part</h2>
+                <form id="sparePartForm">
+                    <div class="form-group">
+                        <label for="partName"><i class="fas fa-tag"></i> Part Name *</label>
+                        <input type="text" id="partName" class="form-control" required placeholder="Enter spare part name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category"><i class="fas fa-list"></i> Category *</label>
+                        <select id="category" class="form-control" required>
+                            <option value="">Select Category</option>
+                            <option value="Engine">Engine</option>
+                            <option value="Brake System">Brake System</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Suspension">Suspension</option>
+                            <option value="Transmission">Transmission</option>
+                            <option value="Body Parts">Body Parts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quantity"><i class="fas fa-hashtag"></i> Quantity *</label>
+                        <input type="number" id="quantity" class="form-control" min="0" required placeholder="Enter quantity">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="unitPrice"><i class="fas fa-money-bill"></i> Unit Price (RWF) *</label>
+                        <input type="number" id="unitPrice" class="form-control" min="0" step="0.01" required placeholder="Enter unit price">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="totalPrice"><i class="fas fa-calculator"></i> Total Price (RWF)</label>
+                        <input type="number" id="totalPrice" class="form-control" readonly placeholder="Calculated automatically">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save Spare Part
+                    </button>
+                    <button type="reset" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Clear Form
+                    </button>
+                </form>
+            </div>
+
+            <!-- Spare Parts List -->
+            <div class="table-container">
+                <h2><i class="fas fa-cogs"></i> Spare Parts Inventory</h2>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <input type="text" id="searchParts" class="form-control" placeholder="Search spare parts...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="categoryFilter" class="form-control">
+                            <option value="">All Categories</option>
+                            <option value="Engine">Engine</option>
+                            <option value="Brake System">Brake System</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Suspension">Suspension</option>
+                            <option value="Transmission">Transmission</option>
+                            <option value="Body Parts">Body Parts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="sparePartsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Part Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Unit Price (RWF)</th>
+                                <th>Total Price (RWF)</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sparePartsBody">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 SmartPark Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Auto-calculate total price
+        document.getElementById('quantity').addEventListener('input', calculateTotal);
+        document.getElementById('unitPrice').addEventListener('input', calculateTotal);
+
+        function calculateTotal() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const unitPrice = parseFloat(document.getElementById('unitPrice').value) || 0;
+            const totalPrice = quantity * unitPrice;
+            document.getElementById('totalPrice').value = totalPrice.toFixed(2);
+        }
+
+        // Form submission
+        document.getElementById('sparePartForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveSparePart();
+        });
+
+        // Search functionality
+        document.getElementById('searchParts').addEventListener('input', filterSpareParts);
+        document.getElementById('categoryFilter').addEventListener('change', filterSpareParts);
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSpareParts();
+        });
+
+        function saveSparePart() {
+            const partData = {
+                name: document.getElementById('partName').value,
+                category: document.getElementById('category').value,
+                quantity: document.getElementById('quantity').value,
+                unitPrice: document.getElementById('unitPrice').value,
+                totalPrice: document.getElementById('totalPrice').value
+            };
+
+            // In real implementation, this would send to server
+            console.log('Saving spare part:', partData);
+            
+            // Add to local storage for demo
+            let spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            partData.id = Date.now();
+            spareParts.push(partData);
+            localStorage.setItem('spareParts', JSON.stringify(spareParts));
+            
+            // Reset form
+            document.getElementById('sparePartForm').reset();
+            document.getElementById('totalPrice').value = '';
+            
+            // Reload table
+            loadSpareParts();
+            
+            alert('Spare part saved successfully!');
+        }
+
+        function loadSpareParts() {
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            const tbody = document.getElementById('sparePartsBody');
+            
+            tbody.innerHTML = '';
+            
+            spareParts.forEach(part => {
+                const row = document.createElement('tr');
+                const status = part.quantity > 10 ? 'In Stock' : part.quantity > 0 ? 'Low Stock' : 'Out of Stock';
+                const statusClass = part.quantity > 10 ? 'status-in-stock' : part.quantity > 0 ? 'status-low' : 'status-out';
+                
+                row.innerHTML = `
+                    <td>${part.id}</td>
+                    <td>${part.name}</td>
+                    <td>${part.category}</td>
+                    <td>${part.quantity}</td>
+                    <td>${parseFloat(part.unitPrice).toLocaleString()}</td>
+                    <td>${parseFloat(part.totalPrice).toLocaleString()}</td>
+                    <td><span class="status ${statusClass}">${status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editSparePart(${part.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSparePart(${part.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function filterSpareParts() {
+            const searchTerm = document.getElementById('searchParts').value.toLowerCase();
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const rows = document.querySelectorAll('#sparePartsBody tr');
+            
+            rows.forEach(row => {
+                const partName = row.cells[1].textContent.toLowerCase();
+                const category = row.cells[2].textContent;
+                const matchesSearch = partName.includes(searchTerm);
+                const matchesCategory = !categoryFilter || category === categoryFilter;
+                
+                row.style.display = matchesSearch && matchesCategory ? '' : 'none';
+            });
+        }
+
+        function editSparePart(id) {
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            const part = spareParts.find(p => p.id === id);
+            
+            if (part) {
+                document.getElementById('partName').value = part.name;
+                document.getElementById('category').value = part.category;
+                document.getElementById('quantity').value = part.quantity;
+                document.getElementById('unitPrice').value = part.unitPrice;
+                document.getElementById('totalPrice').value = part.totalPrice;
+                
+                // Remove the old record
+                const index = spareParts.findIndex(p => p.id === id);
+                if (index > -1) {
+                    spareParts.splice(index, 1);
+                    localStorage.setItem('spareParts', JSON.stringify(spareParts));
+                    loadSpareParts();
+                }
+            }
+        }
+
+        function deleteSparePart(id) {
+            if (confirm('Are you sure you want to delete this spare part?')) {
+                let spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+                spareParts = spareParts.filter(part => part.id !== id);
+                localStorage.setItem('spareParts', JSON.stringify(spareParts));
+                loadSpareParts();
+                alert('Spare part deleted successfully!');
+            }
+        }
+    </script>
+</body>
+</html>

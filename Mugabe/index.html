@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartPark Stock Inventory Management System</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>SmartPark SIMS</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="spare_parts.html"><i class="fas fa-cogs"></i> Spare Parts</a></li>
+                    <li><a href="stock_in.html"><i class="fas fa-arrow-down"></i> Stock In</a></li>
+                    <li><a href="stock_out.html"><i class="fas fa-arrow-up"></i> Stock Out</a></li>
+                    <li><a href="reports.html"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="dashboard">
+                <h2><i class="fas fa-tachometer-alt"></i> Dashboard Overview</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalParts">0</h3>
+                            <p>Total Spare Parts</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalStockIn">0</h3>
+                            <p>Total Stock In</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-red">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalStockOut">0</h3>
+                            <p>Total Stock Out</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalUsers">0</h3>
+                            <p>Active Users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h3><i class="fas fa-history"></i> Recent Activities</h3>
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <i class="fas fa-info-circle"></i>
+                            <div class="activity-content">
+                                <p>Welcome to SmartPark Stock Inventory Management System</p>
+                                <span class="activity-time">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button onclick="window.location.href='spare_parts.html'" class="action-btn">
+                            <i class="fas fa-plus"></i> Add Spare Part
+                        </button>
+                        <button onclick="window.location.href='stock_in.html'" class="action-btn">
+                            <i class="fas fa-arrow-down"></i> Record Stock In
+                        </button>
+                        <button onclick="window.location.href='stock_out.html'" class="action-btn">
+                            <i class="fas fa-arrow-up"></i> Record Stock Out
+                        </button>
+                        <button onclick="window.location.href='reports.html'" class="action-btn">
+                            <i class="fas fa-file-alt"></i> Generate Report
+                        </button>
+                        <button onclick="loadSampleData()" class="action-btn" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">
+                            <i class="fas fa-database"></i> Load Sample Data
+                        </button>
+                        <button onclick="clearAllData()" class="action-btn" style="background: linear-gradient(135deg, #e74c3c, #c0392b);">
+                            <i class="fas fa-trash"></i> Clear All Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2026 SmartPark Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script src="js/sampleData.js"></script>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardStats();
+        });
+
+        function loadDashboardStats() {
+     
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            const stockInRecords = JSON.parse(localStorage.getItem('stockInRecords') || '[]');
+            const stockOutRecords = JSON.parse(localStorage.getItem('stockOutRecords') || '[]');
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            document.getElementById('totalParts').textContent = spareParts.length;
+            document.getElementById('totalStockIn').textContent = stockInRecords.length;
+            document.getElementById('totalStockOut').textContent = stockOutRecords.length;
+            document.getElementById('totalUsers').textContent = users.length;
+        }
+
+        function loadSampleData() {
+            if (confirm('This will load sample data into the system. Existing data will be replaced. Continue?')) {
+                initializeSampleData();
+                loadDashboardStats();
+                showNotification('Sample data loaded successfully!', 'success');
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                localStorage.clear();
+                loadDashboardStats();
+                showNotification('All data cleared successfully!', 'info');
+            }
+        }
+    </script>
+</body>
+</html>

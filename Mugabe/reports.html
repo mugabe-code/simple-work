@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - SmartPark SIMS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+       
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>SmartPark SIMS</h1>
+            </div>
+            <nav class="nav">
+                <ul>
+                    <li><a href="index.html"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li><a href="spare_parts.html"><i class="fas fa-cogs"></i> Spare Parts</a></li>
+                    <li><a href="stock_in.html"><i class="fas fa-arrow-down"></i> Stock In</a></li>
+                    <li><a href="stock_out.html"><i class="fas fa-arrow-up"></i> Stock Out</a></li>
+                    <li><a href="reports.html" class="active"><i class="fas fa-chart-bar"></i> Reports</a></li>
+                    <li><a href="users.html"><i class="fas fa-users"></i> Users</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main class="main-content">
+           
+            <div class="form-container">
+                <h2><i class="fas fa-file-alt"></i> Generate Reports</h2>
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label for="reportType"><i class="fas fa-chart-pie"></i> Report Type *</label>
+                        <select id="reportType" class="form-control" required>
+                            <option value="">Select Report Type</option>
+                            <option value="inventory">Current Inventory Status</option>
+                            <option value="stockin">Stock In History</option>
+                            <option value="stockout">Stock Out History</option>
+                            <option value="movements">Stock Movements Summary</option>
+                            <option value="lowstock">Low Stock Alert</option>
+                            <option value="financial">Financial Summary</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dateFrom"><i class="fas fa-calendar-alt"></i> From Date</label>
+                        <input type="date" id="dateFrom" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dateTo"><i class="fas fa-calendar-alt"></i> To Date</label>
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="categoryFilterReport"><i class="fas fa-list"></i> Category Filter</label>
+                        <select id="categoryFilterReport" class="form-control">
+                            <option value="">All Categories</option>
+                            <option value="Engine">Engine</option>
+                            <option value="Brake System">Brake System</option>
+                            <option value="Electrical">Electrical</option>
+                            <option value="Suspension">Suspension</option>
+                            <option value="Transmission">Transmission</option>
+                            <option value="Body Parts">Body Parts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button onclick="generateReport()" class="btn btn-primary">
+                            <i class="fas fa-chart-bar"></i> Generate Report
+                        </button>
+                        <button onclick="printReport()" class="btn btn-success" id="printBtn" style="display: none;">
+                            <i class="fas fa-print"></i> Print Report
+                        </button>
+                        <button onclick="exportReport()" class="btn btn-info" id="exportBtn" style="display: none;">
+                            <i class="fas fa-file-export"></i> Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container" id="reportContainer" style="display: none;">
+                <div class="report-header">
+                    <h2 id="reportTitle"><i class="fas fa-chart-bar"></i> Report Title</h2>
+                    <div class="report-meta">
+                        <span id="reportDate"></span>
+                        <span id="reportFilters"></span>
+                    </div>
+                </div>
+                <div id="reportContent">
+
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon bg-blue">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalInventoryValue">0</h3>
+                        <p>Total Inventory Value (RWF)</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon bg-green">
+                        <i class="fas fa-arrow-circle-down"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalStockInValue">0</h3>
+                        <p>Total Stock In Value (RWF)</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon bg-red">
+                        <i class="fas fa-arrow-circle-up"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalStockOutValue">0</h3>
+                        <p>Total Stock Out Value (RWF)</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon bg-orange">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="lowStockItems">0</h3>
+                        <p>Low Stock Items</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2026 SmartPark Rwanda. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('dateTo').valueAsDate = today;
+            document.getElementById('dateFrom').valueAsDate = thirtyDaysAgo;
+            
+            loadSummaryStatistics();
+        });
+
+        function loadSummaryStatistics() {
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            const stockInRecords = JSON.parse(localStorage.getItem('stockInRecords') || '[]');
+            const stockOutRecords = JSON.parse(localStorage.getItem('stockOutRecords') || '[]');
+            
+           
+            let totalValue = 0;
+            spareParts.forEach(part => {
+                totalValue += parseFloat(part.totalPrice) || 0;
+            });
+            document.getElementById('totalInventoryValue').textContent = totalValue.toLocaleString();
+            
+          
+            let totalStockIn = 0;
+            stockInRecords.forEach(record => {
+                const part = spareParts.find(p => p.id == record.partId);
+                if (part) {
+                    totalStockIn += (parseInt(record.quantity) * parseFloat(part.unitPrice)) || 0;
+                }
+            });
+            document.getElementById('totalStockInValue').textContent = totalStockIn.toLocaleString();
+            
+            // Total stock out value
+            let totalStockOut = 0;
+            stockOutRecords.forEach(record => {
+                totalStockOut += parseFloat(record.totalPrice) || 0;
+            });
+            document.getElementById('totalStockOutValue').textContent = totalStockOut.toLocaleString();
+            
+            // Low stock items
+            const lowStockCount = spareParts.filter(part => part.quantity <= 10 && part.quantity > 0).length;
+            document.getElementById('lowStockItems').textContent = lowStockCount;
+        }
+
+        function generateReport() {
+            const reportType = document.getElementById('reportType').value;
+            const dateFrom = document.getElementById('dateFrom').value;
+            const dateTo = document.getElementById('dateTo').value;
+            const categoryFilter = document.getElementById('categoryFilterReport').value;
+            
+            if (!reportType) {
+                alert('Please select a report type');
+                return;
+            }
+            
+            let reportContent = '';
+            let reportTitle = '';
+            
+            switch(reportType) {
+                case 'inventory':
+                    reportContent = generateInventoryReport(categoryFilter);
+                    reportTitle = 'Current Inventory Status Report';
+                    break;
+                case 'stockin':
+                    reportContent = generateStockInReport(dateFrom, dateTo, categoryFilter);
+                    reportTitle = 'Stock In History Report';
+                    break;
+                case 'stockout':
+                    reportContent = generateStockOutReport(dateFrom, dateTo, categoryFilter);
+                    reportTitle = 'Stock Out History Report';
+                    break;
+                case 'movements':
+                    reportContent = generateMovementsReport(dateFrom, dateTo, categoryFilter);
+                    reportTitle = 'Stock Movements Summary Report';
+                    break;
+                case 'lowstock':
+                    reportContent = generateLowStockReport();
+                    reportTitle = 'Low Stock Alert Report';
+                    break;
+                case 'financial':
+                    reportContent = generateFinancialReport(dateFrom, dateTo);
+                    reportTitle = 'Financial Summary Report';
+                    break;
+            }
+            
+            // Display report
+            document.getElementById('reportTitle').innerHTML = `<i class="fas fa-chart-bar"></i> ${reportTitle}`;
+            document.getElementById('reportContent').innerHTML = reportContent;
+            document.getElementById('reportDate').textContent = `Generated: ${new Date().toLocaleString()}`;
+            document.getElementById('reportFilters').textContent = `Filters: ${categoryFilter || 'All Categories'} | ${dateFrom ? dateFrom : 'All Time'} to ${dateTo ? dateTo : 'Present'}`;
+            document.getElementById('reportContainer').style.display = 'block';
+            document.getElementById('printBtn').style.display = 'inline-block';
+            document.getElementById('exportBtn').style.display = 'inline-block';
+        }
+
+        function generateInventoryReport(categoryFilter) {
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            let filteredParts = spareParts;
+            
+            if (categoryFilter) {
+                filteredParts = spareParts.filter(part => part.category === categoryFilter);
+            }
+            
+            let html = `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Part Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Unit Price (RWF)</th>
+                            <th>Total Value (RWF)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let totalValue = 0;
+            filteredParts.forEach(part => {
+                const status = part.quantity > 10 ? 'In Stock' : part.quantity > 0 ? 'Low Stock' : 'Out of Stock';
+                const statusClass = part.quantity > 10 ? 'status-in-stock' : part.quantity > 0 ? 'status-low' : 'status-out';
+                const partValue = parseFloat(part.totalPrice) || 0;
+                totalValue += partValue;
+                
+                html += `
+                    <tr>
+                        <td>${part.name}</td>
+                        <td>${part.category}</td>
+                        <td>${part.quantity}</td>
+                        <td>${parseFloat(part.unitPrice).toLocaleString()}</td>
+                        <td>${partValue.toLocaleString()}</td>
+                        <td><span class="status ${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4">Total Inventory Value:</th>
+                            <th>${totalValue.toLocaleString()} RWF</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function generateStockInReport(dateFrom, dateTo, categoryFilter) {
+            const stockInRecords = JSON.parse(localStorage.getItem('stockInRecords') || '[]');
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            
+            let filteredRecords = stockInRecords;
+            
+            // Filter by date
+            if (dateFrom) {
+                filteredRecords = filteredRecords.filter(record => record.date >= dateFrom);
+            }
+            if (dateTo) {
+                filteredRecords = filteredRecords.filter(record => record.date <= dateTo);
+            }
+            
+            // Filter by category
+            if (categoryFilter) {
+                filteredRecords = filteredRecords.filter(record => {
+                    const part = spareParts.find(p => p.id == record.partId);
+                    return part && part.category === categoryFilter;
+                });
+            }
+            
+            let html = `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Part Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Supplier</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let totalQuantity = 0;
+            filteredRecords.forEach(record => {
+                const part = spareParts.find(p => p.id == record.partId);
+                const quantity = parseInt(record.quantity) || 0;
+                totalQuantity += quantity;
+                
+                html += `
+                    <tr>
+                        <td>${new Date(record.date).toLocaleDateString()}</td>
+                        <td>${record.partName}</td>
+                        <td>${record.category}</td>
+                        <td>${quantity}</td>
+                        <td>${record.supplier || 'N/A'}</td>
+                        <td>${record.notes || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3">Total Items Received:</th>
+                            <th>${totalQuantity}</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function generateStockOutReport(dateFrom, dateTo, categoryFilter) {
+            const stockOutRecords = JSON.parse(localStorage.getItem('stockOutRecords') || '[]');
+            
+            let filteredRecords = stockOutRecords;
+            
+            // Filter by date
+            if (dateFrom) {
+                filteredRecords = filteredRecords.filter(record => record.date >= dateFrom);
+            }
+            if (dateTo) {
+                filteredRecords = filteredRecords.filter(record => record.date <= dateTo);
+            }
+            
+            // Filter by category
+            if (categoryFilter) {
+                filteredRecords = filteredRecords.filter(record => record.category === categoryFilter);
+            }
+            
+            let html = `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Part Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Unit Price (RWF)</th>
+                            <th>Total Value (RWF)</th>
+                            <th>Customer/Dept</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let totalValue = 0;
+            let totalQuantity = 0;
+            filteredRecords.forEach(record => {
+                const quantity = parseInt(record.quantity) || 0;
+                const value = parseFloat(record.totalPrice) || 0;
+                totalQuantity += quantity;
+                totalValue += value;
+                
+                html += `
+                    <tr>
+                        <td>${new Date(record.date).toLocaleDateString()}</td>
+                        <td>${record.partName}</td>
+                        <td>${record.category}</td>
+                        <td>${quantity}</td>
+                        <td>${parseFloat(record.unitPrice).toLocaleString()}</td>
+                        <td>${value.toLocaleString()}</td>
+                        <td>${record.customer || 'N/A'}</td>
+                        <td>${record.purpose || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3">Totals:</th>
+                            <th>${totalQuantity}</th>
+                            <th></th>
+                            <th>${totalValue.toLocaleString()} RWF</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function generateMovementsReport(dateFrom, dateTo, categoryFilter) {
+            // This would combine stock in and stock out data
+            return '<p>Stock movements report would show combined stock in/out data with running balances.</p>';
+        }
+
+        function generateLowStockReport() {
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            const lowStockItems = spareParts.filter(part => part.quantity <= 10 && part.quantity > 0);
+            
+            let html = `
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>Part Name</th>
+                            <th>Category</th>
+                            <th>Current Quantity</th>
+                            <th>Unit Price (RWF)</th>
+                            <th>Total Value (RWF)</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let totalValue = 0;
+            lowStockItems.forEach(part => {
+                const partValue = parseFloat(part.totalPrice) || 0;
+                totalValue += partValue;
+                
+                html += `
+                    <tr>
+                        <td>${part.name}</td>
+                        <td>${part.category}</td>
+                        <td>${part.quantity}</td>
+                        <td>${parseFloat(part.unitPrice).toLocaleString()}</td>
+                        <td>${partValue.toLocaleString()}</td>
+                        <td><span class="status status-low">Low Stock</span></td>
+                    </tr>
+                `;
+            });
+            
+            if (lowStockItems.length === 0) {
+                html += `
+                    <tr>
+                        <td colspan="6" style="text-align: center;">No low stock items found</td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4">Total Low Stock Value:</th>
+                            <th>${totalValue.toLocaleString()} RWF</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            `;
+            
+            return html;
+        }
+
+        function generateFinancialReport(dateFrom, dateTo) {
+            const stockInRecords = JSON.parse(localStorage.getItem('stockInRecords') || '[]');
+            const stockOutRecords = JSON.parse(localStorage.getItem('stockOutRecords') || '[]');
+            const spareParts = JSON.parse(localStorage.getItem('spareParts') || '[]');
+            
+            // Filter records by date
+            let filteredStockIn = stockInRecords;
+            let filteredStockOut = stockOutRecords;
+            
+            if (dateFrom) {
+                filteredStockIn = filteredStockIn.filter(record => record.date >= dateFrom);
+                filteredStockOut = filteredStockOut.filter(record => record.date >= dateFrom);
+            }
+            if (dateTo) {
+                filteredStockIn = filteredStockIn.filter(record => record.date <= dateTo);
+                filteredStockOut = filteredStockOut.filter(record => record.date <= dateTo);
+            }
+            
+            // Calculate values
+            let totalStockInValue = 0;
+            filteredStockIn.forEach(record => {
+                const part = spareParts.find(p => p.id == record.partId);
+                if (part) {
+                    totalStockInValue += (parseInt(record.quantity) * parseFloat(part.unitPrice)) || 0;
+                }
+            });
+            
+            let totalStockOutValue = 0;
+            filteredStockOut.forEach(record => {
+                totalStockOutValue += parseFloat(record.totalPrice) || 0;
+            });
+            
+            let html = `
+                <div class="financial-summary">
+                    <div class="financial-card">
+                        <h3><i class="fas fa-arrow-down"></i> Stock In Value</h3>
+                        <p class="financial-amount">${totalStockInValue.toLocaleString()} RWF</p>
+                        <p class="financial-count">${filteredStockIn.length} transactions</p>
+                    </div>
+                    <div class="financial-card">
+                        <h3><i class="fas fa-arrow-up"></i> Stock Out Value</h3>
+                        <p class="financial-amount">${totalStockOutValue.toLocaleString()} RWF</p>
+                        <p class="financial-count">${filteredStockOut.length} transactions</p>
+                    </div>
+                    <div class="financial-card">
+                        <h3><i class="fas fa-balance-scale"></i> Net Movement</h3>
+                        <p class="financial-amount ${(totalStockInValue - totalStockOutValue).toLocaleString()} RWF</p>
+                        <p class="financial-note">${totalStockInValue >= totalStockOutValue ? 'Positive' : 'Negative'} movement</p>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function printReport() {
+            const printContent = document.getElementById('reportContainer').innerHTML;
+            const originalContent = document.body.innerHTML;
+            
+            document.body.innerHTML = `
+                <html>
+                <head>
+                    <title>SmartPark SIMS Report</title>
+                    <link rel="stylesheet" href="css/style.css">
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        .no-print { display: none; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        .financial-summary { display: flex; gap: 20px; margin: 20px 0; }
+                        .financial-card { flex: 1; padding: 15px; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
+                        .financial-amount { font-size: 24px; font-weight: bold; color: #2c3e50; }
+                    </style>
+                </head>
+                <body>
+                    <h1>SmartPark Stock Inventory Management System Report</h1>
+                    ${printContent}
+                    <p>Generated on: ${new Date().toLocaleString()}</p>
+                </body>
+                </html>
+            `;
+            
+            window.print();
+            document.body.innerHTML = originalContent;
+            location.reload();
+        }
+
+        function exportReport() {
+            alert('Export to Excel functionality would be implemented here. In a real application, this would generate an Excel file with the report data.');
+        }
+    </script>
+</body>
+</html>
